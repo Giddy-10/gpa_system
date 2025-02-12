@@ -3,6 +3,7 @@ import React from "react"
 interface ExpProps {
     name: string
     values: string[]
+    defaultValue?: string
 }
 
 const RadioComponent = (props: ExpProps) => {
@@ -12,7 +13,17 @@ const RadioComponent = (props: ExpProps) => {
                 return (
                     <label key={value} className="cursor-pointer">
                         {value}
-                        <input type="radio" name={props.name} value={value} />
+                        <input
+                            type="radio"
+                            name={props.name}
+                            value={value}
+                            defaultChecked={
+                                props.defaultValue &&
+                                props.defaultValue == value
+                                    ? true
+                                    : false
+                            }
+                        />
                     </label>
                 )
             })}

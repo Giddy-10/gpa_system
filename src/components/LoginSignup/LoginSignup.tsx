@@ -3,15 +3,15 @@ import { Input } from "../ui/input"
 import { Label } from "../ui/label"
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
 import RadioComponent from "../Forms/RadioComponent"
+import { Button } from "../ui/button"
 
 interface ExpProps {
     type: "LOGIN" | "SIGNUP"
 }
 
-
 const LoginSignup = (props: ExpProps) => {
     return (
-        <Card className="min-w-96 m-4">
+        <Card className="min-w-96 max-w-[600px] my-4 mx-auto shadow-md">
             <CardHeader>
                 <CardTitle>
                     {props.type == "LOGIN" ? "Log in" : "Sign up"}
@@ -41,12 +41,19 @@ const LoginSignup = (props: ExpProps) => {
                                     required
                                 />
                             </Label>
+                            <label>Role:</label>
                             <RadioComponent
                                 name="role"
                                 values={["Student", "Admin"]}
+                                defaultValue={"Student"}
                             />
                         </>
                     )}
+                    <div className="flex flex-row justify-end gap-4">
+                        <Button type="button">
+                            {props.type == "LOGIN" ? "Log in" : "Sign up"}
+                        </Button>
+                    </div>
                 </form>
             </CardContent>
         </Card>
