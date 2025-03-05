@@ -19,11 +19,11 @@ const StartingDiv = (props: PropsWithChildren<ExpProps>) => {
                 left: 0,
                 opacity: 1,
                 transition: {
-                    default: { type: "spring", stiffness: 40 },
-                    duration: 0.2,
+                    default: { type: "spring", stiffness: 70, bounce: .05 },
+                    duration: 0.1,
                 },
             }}
-            exit={{ opacity: 0, transition: { duration: 0.4 } }}
+            exit={{ opacity: 0, transition: { duration: 0.3 } }}
         >
             {props.children}
         </motion.div>
