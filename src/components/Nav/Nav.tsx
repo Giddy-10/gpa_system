@@ -22,7 +22,7 @@ const Nav = () => {
                     return (
                         <NavigationMenuItem key={link.name}>
                             <Link href={link.url} legacyBehavior passHref>
-                                <NavigationMenuLink>
+                                <NavigationMenuLink className="px-4 py-2 rounded-sm font-bold hover:text-md hover:tracking-widest hover:bg-primary hover:text-primary-foreground">
                                     {link.name}
                                 </NavigationMenuLink>
                             </Link>
