@@ -14,20 +14,8 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
+import { courseList, majorList } from "@/functions/data"
 
-const majorList = [
-    { id: 0, majorName: "BSc. Software Engineering" },
-    { id: 1, majorName: "BSc. Applied Computer Technology" },
-    { id: 2, majorName: "BSc. Data Science" },
-]
-
-const courseList = [
-    { id: "APT2080", courseName: "Intro. to SWE" },
-    { id: "APT2030", courseName: "Digital Electronics" },
-    { id: "MTH2010", courseName: "Probability and Statistics" },
-    { id: "APT1050", courseName: "Database Systems" },
-    { id: "SWE1020", courseName: "Data Structures and Algorithms" },
-]
 
 // select major
 // enter no. of courses completed
@@ -69,7 +57,7 @@ const page = () => {
                     else return 3
                 } else if (prevState == 4) {
                     if (projectedCummulativeGPA) {
-                        router.push("/")
+                        router.push("/dashboard")
                         return 4
                     }
                     else return 4

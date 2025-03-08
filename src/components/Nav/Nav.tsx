@@ -9,6 +9,7 @@ import Link from "next/link"
 
 const navLinks = [
     { name: "Home", url: "/" },
+    {name: "Dashboard", url: "dashboard"},
     { name: "Get Started", url: "/get-started" },
     { name: "Sign Up", url: "/signup" },
     { name: "Log In", url: "/login" },
