@@ -2,7 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
-* {
+.apply-transition {
   transition: .2s;
 }
 
@@ -66,6 +66,11 @@ body {
   }
 }
 
+.select-content[data-state="open"] {
+  animation: none !important;
+  transition: none !important;
+}
+
 
 .radio-component{
   display: flex;
@@ -93,4 +98,10 @@ body {
   body {
     @apply bg-background text-foreground;
   }
+}
+h1 {
+  @apply mt-2 mb-2 text-4xl font-extrabold tracking-tight;
+}
+h2 {
+  @apply scroll-m-20 border-b pt-4 pb-2 text-center text-2xl font-semibold tracking-tight transition-colors first:mt-0 my-4;
 }

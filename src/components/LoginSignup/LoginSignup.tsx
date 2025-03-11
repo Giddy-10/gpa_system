@@ -1,9 +1,18 @@
 import React from "react"
 import { Input } from "../ui/input"
 import { Label } from "../ui/label"
-import { Card, CardContent, CardHeader, CardTitle } from "../ui/card"
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "../ui/card"
 import RadioComponent from "../Forms/RadioComponent"
 import { Button } from "../ui/button"
+import Link from "next/link"
+import { Separator } from "../ui/separator"
+import { Check, CheckCheck, LogIn } from "lucide-react"
 
 interface ExpProps {
     type: "LOGIN" | "SIGNUP"
@@ -16,18 +25,23 @@ const LoginSignup = (props: ExpProps) => {
                 <CardTitle>
                     {props.type == "LOGIN" ? "Log in" : "Sign up"}
                 </CardTitle>
+                <CardDescription></CardDescription>
             </CardHeader>
             <CardContent>
                 <form className="grid w-full items-center gap-5 [&>label]:text-base [&>label]:flex [&>label]:flex-col [&>label]:gap-1">
                     <Label>
-                        Username:
-                        <Input type="text" placeholder="username" required />
+                        Email:
+                        <Input
+                            type="email"
+                            placeholder="example@domain.tld"
+                            required
+                        />
                     </Label>
                     <Label>
                         Password:
                         <Input
                             type="password"
-                            placeholder="password"
+                            placeholder="****************"
                             required
                         />
                     </Label>
@@ -37,7 +51,7 @@ const LoginSignup = (props: ExpProps) => {
                                 Confirm password:
                                 <Input
                                     type="password"
-                                    placeholder="confirm password"
+                                    placeholder="****************"
                                     required
                                 />
                             </Label>
@@ -49,10 +63,31 @@ const LoginSignup = (props: ExpProps) => {
                             />
                         </>
                     )}
-                    <div className="flex flex-row justify-end gap-4">
-                        <Button type="button">
+                    <Separator />
+                    <div className="flex flex-row justify-between items-center gap-4">
+                        <Button type="button" className="px-8">
                             {props.type == "LOGIN" ? "Log in" : "Sign up"}
+                            <LogIn className="ml-2" />
                         </Button>
+                        {props.type == "LOGIN" ? (
+                            <div className="my-2">
+                                <p className="opacity-70 inline">
+                                    Don't have an account?
+                                </p>
+                                <Link href={"/signup"} className="mx-2">
+                                    <Button variant={"outline"}>Sign Up</Button>
+                                </Link>
+                            </div>
+                        ) : (
+                            <div className="my-2">
+                                <p className="opacity-70 inline">
+                                    Already have an account?
+                                </p>
+                                <Link href={"/login"} className="mx-2">
+                                    <Button variant={"outline"}>Log In</Button>
+                                </Link>
+                            </div>
+                        )}
                     </div>
                 </form>
             </CardContent>

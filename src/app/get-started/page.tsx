@@ -14,8 +14,7 @@ import {
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
-import { courseList, majorList } from "@/functions/data"
-
+import { courseList, majorList, majorCourseList } from "@/functions/data"
 
 // select major
 // enter no. of courses completed
@@ -59,8 +58,7 @@ const page = () => {
                     if (projectedCummulativeGPA) {
                         router.push("/dashboard")
                         return 4
-                    }
-                    else return 4
+                    } else return 4
                 } else {
                     return 0
                 }
@@ -88,7 +86,7 @@ const page = () => {
                 Get Started...
             </h2>
             <div className="flex justify-center pb-2 px-10">
-                <div className="flex flex-row gap-2 justify-center items-center border-b w-full pb-2 px-5 mr-8 mb-2">
+                <div className="flex flex-row gap-2 justify-center items-center w-full pb-2 px-5 mr-8 mb-4">
                     <div
                         className={`text-lg font-mono font-bold ${
                             sectionIndex < 0 ? "opacity-50" : "opacity-100"
@@ -218,8 +216,8 @@ const page = () => {
                                     {majorList.map((major) => {
                                         return (
                                             <SelectItem
-                                                value={String(major.id)}
-                                                key={String(major.id)}
+                                                value={String(major.major_id)}
+                                                key={String(major.major_id)}
                                             >
                                                 {major.majorName}
                                             </SelectItem>
@@ -298,15 +296,20 @@ const page = () => {
                                     <SelectValue placeholder="Multiple selector in progress" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {courseList.map((course) => {
-                                        return (
-                                            <SelectItem
-                                                value={course.id}
-                                                key={course.id}
-                                            >
-                                                {course.courseName}
-                                            </SelectItem>
-                                        )
+                                    {majorCourseList.map((course) => {
+                                        if (
+                                            String(course.major_id) ==
+                                            selectedMajor
+                                        ) {
+                                            return (
+                                                <SelectItem
+                                                    value={course.course_id}
+                                                    key={course.course_id}
+                                                >
+                                                    {courseList.find(x => x.course_id == course.course_id)?.courseName}
+                                                </SelectItem>
+                                            )
+                                        }
                                     })}
                                 </SelectContent>
                             </Select>
