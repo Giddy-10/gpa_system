@@ -1,9 +1,10 @@
 "use client"
 import StartingDiv from "@/components/Elements/StartingDiv"
 import { Button } from "@/components/ui/button"
-import { ArrowLeft, ArrowRight } from "lucide-react"
+import { ArrowLeft, ArrowRight, Trash, Trash2, X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import React, { useState } from "react"
+import { MultiSelect, Option } from "@/components/Forms/MultiSelect"
 
 import {
     Select,
@@ -15,6 +16,22 @@ import {
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
 import { courseList, majorList, majorCourseList } from "@/functions/data"
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
+import { PopoverClose } from "@radix-ui/react-popover"
+
+const fruits: Option[] = [
+    { value: "apple", label: "Apple" },
+    { value: "banana", label: "Banana" },
+    { value: "blueberry", label: "Blueberry" },
+    { value: "grapes", label: "Grapes" },
+    { value: "pineapple", label: "Pineapple" },
+    { value: "strawberry", label: "Strawberry" },
+    { value: "watermelon", label: "Watermelon" },
+]
 
 // select major
 // enter no. of courses completed
@@ -32,9 +49,10 @@ const page = () => {
     const [completedCoursesNumber, setCompletedCoursesNumber] =
         useState<number>(0)
     const [cummulativeGPA, setCummulativeGPA] = useState<number>(0)
-    const [currentCourses, setCurrentCourses] = useState<string | null>()
+    const [currentCourses, setCurrentCourses] = useState<string[]>([])
     const [projectedCummulativeGPA, setProjectedCummulativeGPA] =
         useState<number>(0)
+    const [selectedFruits, setSelectedFruits] = useState<string[]>(["apple"])
 
     const router = useRouter()
 
@@ -79,6 +97,18 @@ const page = () => {
                 }
             })
         }
+    }
+
+    const handleCurrentCoursesSelection = (value: string) => {
+        setCurrentCourses((prevState) => {
+            return [...prevState, value]
+        })
+    }
+
+    const deleteCurrentCourse = (id: string) => {
+        setCurrentCourses(prevState => {
+            return prevState.filter(x => x != id)
+        })
     }
     return (
         <div className="my-4 mx-20 [&_h3]:text-xl [&_h3]:font-bold [&_h3]:tracking-tight [&_h3]:mb-2">
@@ -225,6 +255,42 @@ const page = () => {
                                     })}
                                 </SelectContent>
                             </Select>
+                            {/* <div className="space-y-2">
+                                <label
+                                    htmlFor="fruits"
+                                    className="text-sm font-medium"
+                                >
+                                    Select Fruits
+                                </label>
+                                <MultiSelect
+                                    options={fruits}
+                                    selected={selectedFruits}
+                                    onChange={setSelectedFruits}
+                                    placeholder="Select fruits..."
+                                />
+                            </div>
+
+                            {selectedFruits.length > 0 && (
+                                <div className="rounded-md bg-muted p-4">
+                                    <h2 className="mb-2 font-medium">
+                                        Selected fruits:
+                                    </h2>
+                                    <ul className="list-inside list-disc">
+                                        {Array.isArray(selectedFruits) &&
+                                            selectedFruits.map((fruit) => (
+                                                <li key={fruit}>
+                                                    {
+                                                        fruits.find(
+                                                            (f) =>
+                                                                f.value ===
+                                                                fruit
+                                                        )?.label
+                                                    }
+                                                </li>
+                                            ))}
+                                    </ul>
+                                </div>
+                            )} */}
                         </StartingDiv>
                     )}{" "}
                     {sectionIndex == 1 && (
@@ -285,34 +351,95 @@ const page = () => {
                         >
                             <h3>Select the current courses</h3>
                             <Select
-                                value={
-                                    currentCourses ? currentCourses : undefined
-                                }
+                                value={undefined}
                                 onValueChange={(value) =>
-                                    setCurrentCourses(value)
+                                    handleCurrentCoursesSelection(value)
                                 }
                             >
                                 <SelectTrigger className="w-[250px]">
-                                    <SelectValue placeholder="Multiple selector in progress" />
+                                    <SelectValue placeholder="Multiple selector" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     {majorCourseList.map((course) => {
                                         if (
                                             String(course.major_id) ==
-                                            selectedMajor
+                                                selectedMajor &&
+                                            !currentCourses.includes(
+                                                course.course_id
+                                            )
                                         ) {
                                             return (
                                                 <SelectItem
                                                     value={course.course_id}
                                                     key={course.course_id}
                                                 >
-                                                    {courseList.find(x => x.course_id == course.course_id)?.courseName}
+                                                    {
+                                                        courseList.find(
+                                                            (x) =>
+                                                                x.course_id ==
+                                                                course.course_id
+                                                        )?.courseName
+                                                    }
                                                 </SelectItem>
                                             )
                                         }
                                     })}
                                 </SelectContent>
                             </Select>
+                            <div className="my-4 flex flex-col gap-2">
+                                {currentCourses.map((course_id) => {
+                                    return (
+                                        <div className="flex flex-row gap-4 items-center w-fit">
+                                            <p>
+                                                {course_id}:{" "}
+                                                {
+                                                    courseList.find((x) => {
+                                                        return (
+                                                            x.course_id ==
+                                                            course_id
+                                                        )
+                                                    })?.courseName
+                                                }
+                                            </p>
+                                            <Popover>
+                                                <PopoverTrigger>
+                                                    <div className="rounded-lg px-3 py-2 text-destructive hover:bg-destructive hover:text-destructive-foreground duration-100 [&_*]:duration-100">
+                                                        <Trash2 />
+                                                    </div>
+                                                </PopoverTrigger>
+                                                <PopoverContent className="w-80 text-center">
+                                                    Are you sure?
+                                                    <div className="mt-4 flex flex-row justify-around">
+                                                        <PopoverClose>
+                                                            <Button
+                                                                variant={
+                                                                    "destructive"
+                                                                }
+                                                                onClick={() =>
+                                                                    deleteCurrentCourse(
+                                                                        course_id
+                                                                    )
+                                                                }
+                                                            >
+                                                                Yes
+                                                            </Button>
+                                                        </PopoverClose>
+                                                        <PopoverClose>
+                                                            <Button
+                                                                variant={
+                                                                    "outline"
+                                                                }
+                                                            >
+                                                                No
+                                                            </Button>
+                                                        </PopoverClose>
+                                                    </div>
+                                                </PopoverContent>
+                                            </Popover>
+                                        </div>
+                                    )
+                                })}
+                            </div>
                         </StartingDiv>
                     )}{" "}
                     {sectionIndex == 4 && (
