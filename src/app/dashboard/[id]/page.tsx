@@ -1,5 +1,5 @@
 "use client"
-import { useParams, useRouter } from "next/navigation"
+import { redirect, useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
 import {
@@ -7,8 +7,6 @@ import {
     breakdownParams,
     breakdownPresets,
     BreakdownSpecsType,
-    ResultsType,
-    currentResults,
     PresetIdType,
 } from "@/functions/data"
 
@@ -23,11 +21,13 @@ import {
 import { Check } from "lucide-react"
 import Link from "next/link"
 import {
+    AssessmentTypeType,
     AuthKey,
     CourseType,
     EnrollmentType,
     MeType,
 } from "@/functions/functions"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 interface AuthStatus {
     isAuthenticated: boolean
@@ -41,15 +41,17 @@ const Page = () => {
     const [enrollmentData, setEnrollmentData] = useState<EnrollmentType | null>(
         null
     )
+    const [assessmentTypes, setAssessmentTypes] = useState<AssessmentTypeType[] | null>()
+    const [selectedAssessmentType, setSelectedAssessmentType] = useState<string | null>()
+    const [selectedWeight, setSelectedWeight] = useState<number | null>()
+    const [selectedMarks, setSelectedMarks] = useState<number | null>()
+
     const [currentPreset, setCurrentPreset] = useState<
         PresetIdType | undefined
     >()
     const [currentResultID, setCurrentResultID] = useState<number | undefined>()
     const [currentBreakdownSpecs, setCurrentBreakdownSpecs] = useState<
         BreakdownSpecsType | undefined
-    >()
-    const [currentResultsState, setCurrentResultsState] = useState<
-        ResultsType | undefined
     >()
     const params = useParams<{ id: string }>()
     const [authStatus, setAuthStatus] = useState<AuthStatus | null>(null)
@@ -217,6 +219,38 @@ const Page = () => {
     }, [token, meData, courseData])
 
     useEffect(() => {
+        const fetchAssessmentTypes = async () => {
+            try {
+                console.log("Trying to get enrollments")
+                if (token) {
+                    const response = await fetch(
+                        "https://gpa-system.onrender.com/assessment-types/",
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                "Content-Type": "application/json",
+                            },
+                        }
+                    )
+                    if (!response.ok) {
+                        const errorMessage = `HTTP error! status: ${response.status}`
+                        throw new Error(errorMessage)
+                    }
+                    const jsonData: AssessmentTypeType[] = await response.json()
+                    if (jsonData) setAssessmentTypes(jsonData)
+                    console.log("Gotten assessment types")
+                }
+            } catch (e: unknown) {
+                if (e instanceof Error) {
+                    setError(e.message)
+                }
+            }
+        }
+
+        fetchAssessmentTypes()
+    }, [token, meData, courseData])
+
+    useEffect(() => {
         const courseFromList = currentCoursesList.find(
             (x) => x.course_id == params.id
         )
@@ -228,15 +262,44 @@ const Page = () => {
         )
         setCurrentBreakdownSpecs(breakdown?.breakdown_specs)
 
-        setCurrentResultsState(
-            currentResults.find((x) => x.result_id == currentResultID)
-        )
     }, [
         params,
         currentPreset,
         currentBreakdownSpecs,
         currentResultID,
     ])
+
+    const handleSubmission = async () => {
+        try {
+            const response = await fetch(
+                "https://gpa-system.onrender.com/api/assessments/",
+                {
+                    method: "POST",
+                    body: JSON.stringify({
+                        course: courseData?.id,
+                        assessment_type: selectedAssessmentType,
+                        weight: selectedWeight,
+                        total_marks: selectedMarks,
+                    }),
+                    headers: {
+                        Authorization: `Bearer ${token}`,
+                        "Content-Type": "application/json",
+                    },
+                }
+            )
+            if (!response.ok) {
+                console.log(`Not posted assessment`)
+            } else {
+                console.log(`Successfully posted assessment`)
+                redirect("/dashboard")
+            }
+        }
+        catch (e: unknown) {
+            if (e instanceof Error) {
+                console.error()
+            }
+        }
+    }
 
     if (isLoading) {
         return <p>Checking authentication...</p>
@@ -262,43 +325,44 @@ const Page = () => {
                 </h2>
                 <div className="px-4 w-[25rem] mx-auto mt-10">
                     <h3 className="text-xl font-bold">Breakdown</h3>
-                    {currentBreakdownSpecs &&
-                        Object.keys(currentBreakdownSpecs).map((x) => {
-                            const key = Number(x) as PresetIdType
-                            const currentBreakdown = breakdownParams.find(
-                                (breakdown) => breakdown.breakdown_id == key
-                            )
-                            if (currentBreakdownSpecs[key] == 0) {
-                                return ""
-                            } else {
+                    <Select onValueChange={(e) => setSelectedAssessmentType(e)}>
+                        <SelectTrigger className="w-[250px]">
+                            <SelectValue placeholder="Types" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {assessmentTypes?.map((type) => {
                                 return (
-                                    <div
-                                        className="my-2 flex flex-row justify-between items-center"
-                                        key={key}
+                                    <SelectItem
+                                        value={type.value}
+                                        key={type.value}
                                     >
-                                        <div>
-                                            {currentBreakdown?.breakdown_name}
-                                        </div>
-                                        <div>
-                                            <Input
-                                                className="inline w-fit mr-2"
-                                                type="number"
-                                                min={0}
-                                                max={currentBreakdownSpecs[key]}
-                                                step={1}
-                                                size={2}
-                                                defaultValue={
-                                                    currentResultsState?.[
-                                                        Number(x)
-                                                    ] || ""
-                                                }
-                                            />
-                                            / {currentBreakdownSpecs[key]}
-                                        </div>
-                                    </div>
+                                        {type.label}
+                                    </SelectItem>
                                 )
-                            }
-                        })}
+                            })}
+                        </SelectContent>
+                    </Select>
+                    <p>Weight</p>
+                    <Input
+                        className="w-fit"
+                        type="number"
+                        min={1}
+                        max={40}
+                        onChange={(e) =>
+                            setSelectedWeight(Number(e.currentTarget.value))
+                        }
+                    />
+                    <p>Grade</p>
+                    <Input
+                        className="w-fit"
+                        type="number"
+                        min={1}
+                        max={40}
+                        onChange={(e) =>
+                            setSelectedMarks(Number(e.currentTarget.value))
+                        }
+                    />
+                    <Button className="block my-2 ml-auto bg-success text-success-foreground" onClick={handleSubmission}>Submit</Button>
                     <Dialog>
                         <DialogTrigger>
                             <div className="mt-4 rounded-lg px-3 py-2 bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground duration-100 **:duration-100">

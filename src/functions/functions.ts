@@ -46,3 +46,8 @@ export interface ProjectionType {
     projected_cumulative_gpa: string
     is_on_track: boolean
 }
+
+export interface AssessmentTypeType {
+    value: string
+    label: string
+}
