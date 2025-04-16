@@ -1,10 +1,9 @@
 "use client"
-import { redirect, useParams, useRouter } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 
 import {
     currentCoursesList,
-    breakdownParams,
     breakdownPresets,
     BreakdownSpecsType,
     PresetIdType,
@@ -21,13 +20,21 @@ import {
 import { Check } from "lucide-react"
 import Link from "next/link"
 import {
-    AssessmentTypeType,
+    TypeOfAssessmentType,
     AuthKey,
     CourseType,
     EnrollmentType,
     MeType,
+    TypeOfAssessment,
+    ScoresType,
 } from "@/functions/functions"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 
 interface AuthStatus {
     isAuthenticated: boolean
@@ -41,10 +48,23 @@ const Page = () => {
     const [enrollmentData, setEnrollmentData] = useState<EnrollmentType | null>(
         null
     )
-    const [assessmentTypes, setAssessmentTypes] = useState<AssessmentTypeType[] | null>()
-    const [selectedAssessmentType, setSelectedAssessmentType] = useState<string | null>()
+    const [assessmentTypes, setAssessmentTypes] = useState<
+        TypeOfAssessmentType[] | null
+    >()
+    const [selectedAssessmentType, setSelectedAssessmentType] = useState<
+        string | null
+    >()
+    const [selectedAssessmentForMarks, setSelectedAssessmentForMarks] =
+        useState<number | null>()
+    const [selectedMarksAchieved, setSelectedMarksAchieved] = useState<
+        number | null
+    >()
     const [selectedWeight, setSelectedWeight] = useState<number | null>()
     const [selectedMarks, setSelectedMarks] = useState<number | null>()
+    const [courseAssessments, setCourseAssessments] = useState<
+        TypeOfAssessment[] | null
+    >()
+    const [courseScores, setCourseScores] = useState<ScoresType[] | null>()
 
     const [currentPreset, setCurrentPreset] = useState<
         PresetIdType | undefined
@@ -219,6 +239,74 @@ const Page = () => {
     }, [token, meData, courseData])
 
     useEffect(() => {
+        const fetchCourseAssessments = async () => {
+            try {
+                console.log("Trying to get assessments")
+                if (token) {
+                    const response = await fetch(
+                        "https://gpa-system.onrender.com/api/assessments/",
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                "Content-Type": "application/json",
+                            },
+                        }
+                    )
+                    if (!response.ok) {
+                        const errorMessage = `HTTP error! status: ${response.status}`
+                        throw new Error(errorMessage)
+                    }
+                    const jsonData: TypeOfAssessment[] = await response.json()
+                    const filteredCourseData = jsonData.filter((assessment) => {
+                        return assessment.course == courseData?.id
+                    })
+                    if (filteredCourseData.length)
+                        setCourseAssessments(filteredCourseData)
+                    console.log("Gotten assessment")
+                }
+            } catch (e: unknown) {
+                if (e instanceof Error) {
+                    setError(e.message)
+                }
+            }
+        }
+
+        fetchCourseAssessments()
+    }, [token, courseData])
+
+    useEffect(() => {
+        const fetchCourseAssessments = async () => {
+            try {
+                console.log("Trying to get scores")
+                if (token) {
+                    const response = await fetch(
+                        "https://gpa-system.onrender.com/api/scores/",
+                        {
+                            headers: {
+                                Authorization: `Bearer ${token}`,
+                                "Content-Type": "application/json",
+                            },
+                        }
+                    )
+                    if (!response.ok) {
+                        const errorMessage = `HTTP error! status: ${response.status}`
+                        throw new Error(errorMessage)
+                    }
+                    const jsonData: ScoresType[] = await response.json()
+                    if (jsonData) setCourseScores(jsonData)
+                    console.log("Gotten assessment")
+                }
+            } catch (e: unknown) {
+                if (e instanceof Error) {
+                    setError(e.message)
+                }
+            }
+        }
+
+        fetchCourseAssessments()
+    }, [token, courseData])
+
+    useEffect(() => {
         const fetchAssessmentTypes = async () => {
             try {
                 console.log("Trying to get enrollments")
@@ -236,7 +324,8 @@ const Page = () => {
                         const errorMessage = `HTTP error! status: ${response.status}`
                         throw new Error(errorMessage)
                     }
-                    const jsonData: AssessmentTypeType[] = await response.json()
+                    const jsonData: TypeOfAssessmentType[] =
+                        await response.json()
                     if (jsonData) setAssessmentTypes(jsonData)
                     console.log("Gotten assessment types")
                 }
@@ -261,15 +350,9 @@ const Page = () => {
             (x) => x.preset_id == currentPreset
         )
         setCurrentBreakdownSpecs(breakdown?.breakdown_specs)
+    }, [params, currentPreset, currentBreakdownSpecs, currentResultID])
 
-    }, [
-        params,
-        currentPreset,
-        currentBreakdownSpecs,
-        currentResultID,
-    ])
-
-    const handleSubmission = async () => {
+    const handleAssessmentAdd = async () => {
         try {
             const response = await fetch(
                 "https://gpa-system.onrender.com/api/assessments/",
@@ -291,10 +374,49 @@ const Page = () => {
                 console.log(`Not posted assessment`)
             } else {
                 console.log(`Successfully posted assessment`)
-                redirect("/dashboard")
+                router.refresh()
+            }
+        } catch (e: unknown) {
+            if (e instanceof Error) {
+                console.error()
             }
         }
-        catch (e: unknown) {
+    }
+
+    const handleMarksAdd = async () => {
+        try {
+            if (
+                meData?.id &&
+                selectedAssessmentForMarks &&
+                selectedMarksAchieved
+            ) {
+                const response = await fetch(
+                    "https://gpa-system.onrender.com/api/scores/",
+                    {
+                        method: "POST",
+                        body: JSON.stringify({
+                            student: meData?.id,
+                            assessment: selectedAssessmentForMarks,
+                            marks_obtained: selectedMarksAchieved,
+                        }),
+                        headers: {
+                            Authorization: `Bearer ${token}`,
+                            "Content-Type": "application/json",
+                        },
+                    }
+                )
+                if (!response.ok) {
+                    console.log(`Not posted marks`)
+                } else {
+                    console.log(`Successfully posted marks`)
+                    router.refresh()
+                }
+            } else {
+                console.log("Data not present")
+                console.log(selectedAssessmentForMarks)
+                console.log(selectedMarksAchieved)
+            }
+        } catch (e: unknown) {
             if (e instanceof Error) {
                 console.error()
             }
@@ -325,114 +447,149 @@ const Page = () => {
                 </h2>
                 <div className="px-4 w-[25rem] mx-auto mt-10">
                     <h3 className="text-xl font-bold">Breakdown</h3>
-                    <Select onValueChange={(e) => setSelectedAssessmentType(e)}>
-                        <SelectTrigger className="w-[250px]">
-                            <SelectValue placeholder="Types" />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {assessmentTypes?.map((type) => {
-                                return (
-                                    <SelectItem
-                                        value={type.value}
-                                        key={type.value}
-                                    >
-                                        {type.label}
-                                    </SelectItem>
-                                )
-                            })}
-                        </SelectContent>
-                    </Select>
-                    <p>Weight</p>
-                    <Input
-                        className="w-fit"
-                        type="number"
-                        min={1}
-                        max={40}
-                        onChange={(e) =>
-                            setSelectedWeight(Number(e.currentTarget.value))
-                        }
-                    />
-                    <p>Grade</p>
-                    <Input
-                        className="w-fit"
-                        type="number"
-                        min={1}
-                        max={40}
-                        onChange={(e) =>
-                            setSelectedMarks(Number(e.currentTarget.value))
-                        }
-                    />
-                    <Button className="block my-2 ml-auto bg-success text-success-foreground" onClick={handleSubmission}>Submit</Button>
+                    <div className="mt-6">
+                        <div className="flex flex-row justify-between">
+                            <div>Assessment type</div>
+                            <div>Marks</div>
+                            <div>Total marks</div>
+                            <div>Weight</div>
+                        </div>
+                        {courseAssessments?.map((assessment) => {
+                            return (
+                                <div
+                                    key={assessment.id}
+                                    className="flex flex-row justify-between"
+                                >
+                                    <div>{assessment.assessment_type}</div>
+                                    <div>
+                                        {
+                                            courseScores?.find(
+                                                (x) =>
+                                                    x.assessment ==
+                                                    assessment.id
+                                            )?.marks_obtained
+                                        }
+                                    </div>
+                                    <div>{assessment.total_marks}</div>
+                                    <div>{assessment.weight}</div>
+                                </div>
+                            )
+                        })}
+                    </div>
                     <Dialog>
-                        <DialogTrigger>
+                        <DialogTrigger className="text-center flex flex-col gap-2 items-center">
                             <div className="mt-4 rounded-lg px-3 py-2 bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground duration-100 **:duration-100">
-                                Change preset
+                                Add assessment
                             </div>
                         </DialogTrigger>
-                        <DialogContent className="w-[90vw] text-center flex flex-col gap-2 items-center">
-                            <p>Select preset</p>
-                            <div className="flex flex-row flex-wrap justify-center gap-2">
-                                {breakdownPresets.map((preset) => {
-                                    return (
-                                        <DialogClose key={preset.preset_id}>
-                                            <div className="shadow-md w-fit p-2 rounded-sm cursor-pointer hover:shadow-xl">
-                                                {Object.keys(
-                                                    preset.breakdown_specs
-                                                ).map((breakdownIdString) => {
-                                                    const key = Number(
-                                                        breakdownIdString
-                                                    ) as PresetIdType
-                                                    if (
-                                                        preset.breakdown_specs[
-                                                            key
-                                                        ] == 0
-                                                    ) {
-                                                        return ""
-                                                    } else {
-                                                        return (
-                                                            <div
-                                                                className="flex flex-row justify-between w-60"
-                                                                key={key}
-                                                            >
-                                                                <div>
-                                                                    {
-                                                                        breakdownParams.find(
-                                                                            (
-                                                                                x
-                                                                            ) =>
-                                                                                x.breakdown_id ==
-                                                                                Number(
-                                                                                    breakdownIdString
-                                                                                )
-                                                                        )
-                                                                            ?.breakdown_name
-                                                                    }
-                                                                </div>
-                                                                <div>
-                                                                    {
-                                                                        preset
-                                                                            .breakdown_specs[
-                                                                            key
-                                                                        ]
-                                                                    }
-                                                                </div>
-                                                            </div>
-                                                        )
-                                                    }
-                                                })}
-                                            </div>
-                                        </DialogClose>
+                        <DialogContent>
+                            <Select
+                                onValueChange={(e) =>
+                                    setSelectedAssessmentType(e)
+                                }
+                            >
+                                <SelectTrigger className="w-[250px]">
+                                    <SelectValue placeholder="Types" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {assessmentTypes?.map((type) => {
+                                        return (
+                                            <SelectItem
+                                                value={type.value}
+                                                key={type.value}
+                                            >
+                                                {type.label}
+                                            </SelectItem>
+                                        )
+                                    })}
+                                </SelectContent>
+                            </Select>
+                            <p>{"Weight (out of the total 100)"}</p>
+                            <Input
+                                className="w-fit"
+                                type="number"
+                                min={1}
+                                max={40}
+                                onChange={(e) =>
+                                    setSelectedWeight(
+                                        Number(e.currentTarget.value)
                                     )
-                                })}
+                                }
+                            />
+                            <p>Total marks</p>
+                            <Input
+                                className="w-fit"
+                                type="number"
+                                min={1}
+                                max={40}
+                                onChange={(e) =>
+                                    setSelectedMarks(
+                                        Number(e.currentTarget.value)
+                                    )
+                                }
+                            />
+                            <DialogClose>
+                                <Button
+                                    className="block my-2 ml-auto bg-success text-success-foreground"
+                                    onClick={handleAssessmentAdd}
+                                >
+                                    Submit
+                                </Button>
+                            </DialogClose>
+                        </DialogContent>
+                    </Dialog>
+                    <Dialog>
+                        <DialogTrigger className="text-center flex flex-col gap-2 items-center">
+                            <div className="mt-4 rounded-lg px-3 py-2 bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground duration-100 **:duration-100">
+                                Add marks
                             </div>
-                            <div className="mt-4 flex flex-row justify-around gap-2">
-                                <DialogClose>
-                                    <Button variant={"outline"}>Cancel</Button>
-                                </DialogClose>
-                                <DialogClose>
-                                    <Button>Send</Button>
-                                </DialogClose>
-                            </div>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <Select
+                                onValueChange={(e) =>
+                                    setSelectedAssessmentForMarks(Number(e))
+                                }
+                            >
+                                <SelectTrigger className="w-[250px]">
+                                    <SelectValue placeholder="Types" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {courseAssessments?.map((ass) => {
+                                        return (
+                                            <SelectItem
+                                                value={String(ass.id)}
+                                                key={ass.id}
+                                            >
+                                                {ass.assessment_type}
+                                            </SelectItem>
+                                        )
+                                    })}
+                                </SelectContent>
+                            </Select>
+                            <p>{`Marks (out of the total ${
+                                courseAssessments?.find(
+                                    (x) => x.id == selectedAssessmentForMarks
+                                )?.total_marks
+                            })`}</p>
+                            <Input
+                                className="w-fit"
+                                type="number"
+                                min={1}
+                                max={40}
+                                onChange={(e) =>
+                                    setSelectedMarksAchieved(
+                                        Number(e.currentTarget.value)
+                                    )
+                                }
+                            />
+                            <DialogClose>
+                                <Button
+                                    className="block my-2 ml-auto bg-success text-success-foreground"
+                                    onClick={handleMarksAdd}
+                                >
+                                    Submit
+                                </Button>
+                            </DialogClose>
                         </DialogContent>
                     </Dialog>
                     <Link

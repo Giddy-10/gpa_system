@@ -47,7 +47,23 @@ export interface ProjectionType {
     is_on_track: boolean
 }
 
-export interface AssessmentTypeType {
+export interface TypeOfAssessmentType {
     value: string
     label: string
+}
+
+export interface TypeOfAssessment {
+    id: number
+    course: number
+    assessment_type: string
+    assessment_type_display: string
+    weight: string
+    total_marks: string
+}
+
+export interface ScoresType {
+    id: number
+    marks_obtained: string
+    student: number
+    assessment: number
 }
