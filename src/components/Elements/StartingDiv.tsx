@@ -1,6 +1,6 @@
 "use client"
 import React, { PropsWithChildren } from "react"
-import { AnimatePresence, motion } from "motion/react"
+import { motion } from "motion/react"
 import { Button } from "../ui/button"
 import { ArrowLeft, ArrowRight } from "lucide-react"
 

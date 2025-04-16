@@ -16,6 +16,7 @@ const DashboardProjectionEdit = () => {
 
     const handleProjectionChange = () => {
         //handle here
+        console.log(newProjection)
         router.refresh()
     }
 
@@ -23,7 +24,7 @@ const DashboardProjectionEdit = () => {
         <div>
             <Popover>
                 <PopoverTrigger>
-                    <div className="rounded-lg px-3 py-2 bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground duration-100 [&_*]:duration-100">
+                    <div className="rounded-lg px-3 py-2 bg-primary text-primary-foreground hover:bg-secondary hover:text-secondary-foreground duration-100 **:duration-100">
                         Change projection
                     </div>
                 </PopoverTrigger>

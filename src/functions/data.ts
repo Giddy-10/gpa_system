@@ -32,17 +32,28 @@ export const majorCourseList = [
 ]
 
 export const userData = {
+    username: "johndoe21",
     major: 0,
     positive_progress: true,
 }
 
-export const currentCoursesList = [
-    { preset_id: 1, course_id: "APT2080" },
-    { preset_id: 0, course_id: "MTH2010" },
-    { preset_id: 0, course_id: "APT1050" },
+export type PresetIdType = 0 | 1 | 2 | 3 | 4 | 5 | 6
+
+export interface CurrentCoursesType {
+    preset_id: PresetIdType, course_id: string, result_id: number
+}
+
+export const currentCoursesList: CurrentCoursesType[] = [
+    { preset_id: 1, course_id: "APT2080", result_id: 0 },
+    { preset_id: 0, course_id: "MTH2010", result_id: 1 },
+    { preset_id: 0, course_id: "APT1050", result_id: 2 },
 ]
 
-export const breakdownParams = [
+export interface BreakdownParamsType {
+    breakdown_id: PresetIdType, breakdown_name: string
+}
+
+export const breakdownParams: BreakdownParamsType[] = [
     { breakdown_id: 0, breakdown_name: "Attendance & Participation" },
     { breakdown_id: 1, breakdown_name: "Assignments" },
     { breakdown_id: 2, breakdown_name: "CATs" },
@@ -63,6 +74,46 @@ export const breakdownPresets = [
     },
 ]
 
-export interface BreakdownSpecsType {
-    [breakdown_id: number]: number
+export const currentResults = [
+    {
+        result_id: 0,
+        0: null,
+        1: null,
+        2: 18,
+        3: 15,
+        4: null,
+        5: null,
+        6: null,
+    },
+    {
+        result_id: 1,
+        0: null,
+        1: 20,
+        2: null,
+        3: null,
+        4: null,
+        5: null,
+        6: null,
+    },
+    {
+        result_id: 2,
+        0: null,
+        1: 19,
+        2: null,
+        3: null,
+        4: null,
+        5: null,
+        6: null,
+    },
+]
+
+export type BreakdownSpecsType = {
+    [breakdown_id in PresetIdType]: number
+}
+
+interface ResultListType {
+    [breakdown_result_id: number]: number | null
+}
+export interface ResultsType extends ResultListType {
+    result_id: number
 }
