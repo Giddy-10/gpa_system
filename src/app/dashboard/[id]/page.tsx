@@ -445,10 +445,10 @@ const Page = () => {
                 <h2>
                     {courseData?.course_code}: {courseData?.course_name}
                 </h2>
-                <div className="px-4 w-[25rem] mx-auto mt-10">
+                <div className="px-4 w-[35rem] mx-auto mt-10">
                     <h3 className="text-xl font-bold">Breakdown</h3>
                     <div className="mt-6">
-                        <div className="flex flex-row justify-between">
+                        <div className="grid grid-cols-4 mb-8 font-bold gap-2">
                             <div>Assessment type</div>
                             <div>Marks</div>
                             <div>Total marks</div>
@@ -458,9 +458,11 @@ const Page = () => {
                             return (
                                 <div
                                     key={assessment.id}
-                                    className="flex flex-row justify-between"
+                                    className="grid grid-cols-4 gap-2"
                                 >
-                                    <div>{assessment.assessment_type}</div>
+                                    <div className="font-bold">
+                                        {assessment.assessment_type}
+                                    </div>
                                     <div>
                                         {
                                             courseScores?.find(
